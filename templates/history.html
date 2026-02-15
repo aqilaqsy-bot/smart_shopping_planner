@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}Archive History - SmartPlanner{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center border-bottom pb-2">
+        <h2 class="fw-bold text-dark"><i class="fas fa-history me-2"></i>History / Archive</h2>
+        <a href="/dashboard" class="btn btn-outline-primary"><i class="fas fa-arrow-left me-2"></i>Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="row">
+    {% if archives %}
+    <div class="col-12">
+        <div class="alert alert-info py-2"><i class="fas fa-info-circle me-2"></i>Archived lists are read-only. Restore
+            to edit.</div>
+        <div class="row">
+            {% for item in archives %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="fw-bold text-dark">{{ item.list.name }}</h5>
+                            <span class="badge bg-secondary">Archived</span>
+                        </div>
+
+                        <p class="text-muted small mb-2">
+                            <i class="far fa-calendar-alt me-1"></i> Created: {{ item.list.created_at }}
+                        </p>
+
+                        <h4 class="text-success fw-bold mb-3">Total: RM {{ "%.2f"|format(item.total) }}</h4>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#viewModal{{ item.list.id }}">
+                                <i class="fas fa-eye me-1"></i> Show List
+                            </button>
+                            <a href="/restore_list/{{ item.list.id }}" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-trash-restore me-1"></i> Restore List
+                            </a>
+                            <a href="/delete_list_permanent/{{ item.list.id }}" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('Are you sure? This list will be deleted permanently!')">
+                                <i class="fas fa-trash me-1"></i> Delete Permanently
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- View List Modal -->
+                <div class="modal fade" id="viewModal{{ item.list.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-light">
+                                <h5 class="modal-title fw-bold">{{ item.list.name }} <small
+                                        class="text-muted ms-2">(Archived)</small></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                {% if item.purchased_items %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Item</th>
+                                                <th>Category</th>
+                                                <th class="text-center">Qty</th>
+                                                <th class="text-end">Price</th>
+                                                <th class="text-end">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for i in item.purchased_items %}
+                                            <tr>
+                                                <td>{{ i.name }}</td>
+                                                <td><small class="badge bg-secondary">{{ i.category }}</small></td>
+                                                <td class="text-center">{{ i.quantity }}</td>
+                                                <td class="text-end">RM {{ "%.2f"|format(i.price) }}</td>
+                                                <td class="text-end">RM {{ "%.2f"|format(i.total_price) }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                            <tr class="table-dark fw-bold">
+                                                <td colspan="4" class="text-end">Grand Total</td>
+                                                <td class="text-end">RM {{ "%.2f"|format(item.total) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-center text-muted my-3">No items in this list.</p>
+                                {% endif %}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <h3 class="text-muted">No history found.</h3>
+        <p class="text-muted">Lists you archive will appear here.</p>
+        <a href="/dashboard" class="btn btn-primary mt-2">Go to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+
+{% block title %}Register Account - SmartPlanner{% endblock %}
+
+{% block extra_css %}
+<style>
+    .main-content {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 450px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .register-header {
+        background: linear-gradient(135deg, #198754, #20c997);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card register-card">
+    <div class="register-header">
+        <h2><i class="fas fa-user-plus me-2"></i>New Registration</h2>
+        <p class="mb-0 opacity-75">Join SmartPlanner Now</p>
+    </div>
+
+    <div class="card-body p-5 bg-white">
+
+        <!-- Flash messages are widely handled in layout.html now, but we check if specific placement is needed -->
+        <!-- Since layout.html puts flash messages ABOVE content, it might look weird being outside the card. -->
+        <!-- However, consistency is key. Let's rely on layout.html for flash messages or user can see them at top. -->
+
+        <form action="/register" method="POST">
+            <div class="mb-4">
+                <label class="form-label text-muted fw-bold">Preferred Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
+                    <input type="text" name="username" class="form-control border-start-0 ps-0" placeholder="Ex: ali123"
+                        required>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted fw-bold">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                    <input type="password" name="password" class="form-control border-start-0 ps-0"
+                        placeholder="Minimum 4 characters" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 text-white fw-bold rounded-pill mt-2">
+                REGISTER ACCOUNT <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </form>
+
+        <div class="text-center mt-4 border-top pt-3">
+            <p class="small text-muted">Already have an account? <a href="/login"
+                    class="text-success fw-bold text-decoration-none">Login Here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

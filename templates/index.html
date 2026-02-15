@@ -1,0 +1,451 @@
+{% extends "layout.html" %}
+
+{% block title %}Main Dashboard - SmartPlanner{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12 border-bottom pb-2">
+        <h2 class="fw-bold text-dark"><i class="fas fa-chart-line me-2"></i>Main Dashboard</h2>
+    </div>
+</div>
+
+<div class="row">
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-3">
+
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0 text-muted">MY LISTS</h6>
+                <button class="btn btn-sm btn-success rounded-circle" data-bs-toggle="modal"
+                    data-bs-target="#modalCreateList">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <div class="list-group">
+                {% for list in lists %}
+                <a href="/dashboard?list_id={{ list.id }}"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if list.id == active_list.id %}active{% endif %}">
+                    <span class="text-truncate"><i class="fas fa-folder me-2"></i>{{ list.name }}</span>
+                    {% if list.id == active_list.id %} <i class="fas fa-chevron-right small"></i> {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card p-3 mt-3">
+            <h6 class="text-muted fw-bold mb-3">QUICK MENU</h6>
+            <div class="d-grid gap-2">
+                <!-- History: Dark -->
+                <a href="/history" class="btn btn-secondary text-start border-0 py-2"
+                    style="background-color: #6c757d;">
+                    <i class="fas fa-history me-2 text-white"></i> History / Archive
+                </a>
+
+                <!-- AI Assistant: Gradient Blue/Purple -->
+                <a href="/ai_assistant" class="btn btn-primary text-start border-0 py-2"
+                    style="background: linear-gradient(45deg, #6b33b9, #2575fc);">
+                    <i class="fas fa-robot me-2 text-white"></i> AI Assistant
+                </a>
+
+                <!-- Tools: Outline -->
+                <a href="/tools" class="btn btn-outline-secondary text-start py-2">
+                    <i class="fas fa-calculator me-2 text-dark"></i> Smart Tools
+                </a>
+
+
+            </div>
+        </div>
+
+        <div class="card p-3 mt-3 tips-card">
+            <h6 class="fw-bold"><i class="fas fa-lightbulb me-2"></i>Smart Tips</h6>
+            <p class="small mb-0 fst-italic" id="sidebarTip">Loading tip...</p>
+        </div>
+
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="col-lg-9">
+
+        {% if active_list %}
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div class="d-flex align-items-center">
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark">{{ active_list.name }}</h4>
+                    <small class="text-muted">Manage items for this project/category.</small>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary ms-3 rounded-circle" data-bs-toggle="modal"
+                    data-bs-target="#renameModal">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+            <!-- BUTTON SOLVED & ARCHIVE (Enlarged) -->
+            <a href="/archive_list/{{ active_list.id }}" class="btn btn-lg btn-primary shadow-sm px-4 fw-bold"
+                onclick="return confirm('Archive this list? It will be moved to History.')">
+                <i class="fas fa-check-circle me-2"></i> Complete & Archive
+            </a>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">No active list. Please create a new one.</div>
+        {% endif %}
+
+        <!-- budget card -->
+        <div class="card p-4">
+            <div class="row align-items-center">
+                <div class="col-md-6 border-end">
+                    <small class="text-uppercase text-muted fw-bold">Budget Balance</small>
+                    <h1 class="budget-amount {% if baki < 0 %}text-danger{% else %}text-success{% endif %}">
+                        RM {{ "%.2f"|format(baki) }}
+                    </h1>
+                    <small class="text-muted">Out of RM {{ "%.2f"|format(budget) }}</small>
+                </div>
+                <div class="col-md-6 ps-md-4 mt-3 mt-md-0">
+                    <form action="/update_budget" method="POST" class="d-flex">
+                        <input type="hidden" name="list_id" value="{{ active_list.id }}">
+                        <input type="number" step="0.01" name="budget_amount" class="form-control me-2"
+                            placeholder="Set Budget (RM)" required>
+                        <button class="btn btn-dark" type="submit">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- add item form -->
+        {% if active_list %}
+        <div class="card p-4 border-start border-success border-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-cart-plus me-2 text-success"></i>Add Item</h5>
+            <form action="/add_item" method="POST" class="row g-2">
+                <input type="hidden" name="list_id" value="{{ active_list.id }}">
+
+                <div class="col-md-3">
+                    <input type="text" name="item_name" class="form-control" placeholder="Item Name" required>
+                </div>
+                <div class="col-md-3">
+                    <select name="item_category" class="form-select">
+                        <option value="General">📂 Category...</option>
+                        <option value="Food">🍔 Food</option>
+                        <option value="Drinks">🥤 Drinks</option>
+                        <option value="Hygiene">🧼 Hygiene</option>
+                        <option value="Electronics">🔌 Electronics</option>
+                        <option value="Clothing">👕 Clothing</option>
+                        <option value="Furniture">🪑 Furniture</option>
+                        <option value="Others">📦 Others</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="item_qty" class="form-control" value="1" min="1" placeholder="Qty">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" step="0.01" name="item_price" class="form-control" placeholder="Price"
+                        required>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-success w-100 fw-bold">Add</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- item list filter & table -->
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="fw-bold text-dark mb-0"><i class="fas fa-list-ul me-2"></i>Item List</h3>
+
+                <!-- SEARCH BAR (Client Side) -->
+                <div class="d-flex">
+                    <input class="form-control me-2 form-control-sm" type="search" id="searchInput"
+                        placeholder="Search items or category..." onkeyup="liveSearch()">
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end mb-2">
+                <span class="badge bg-info text-dark fs-5 px-3 py-2">Total: RM {{ "%.2f"|format(total) }}</span>
+            </div>
+
+            {% if items %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end" style="width: 150px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr class="{% if item.is_bought %}item-bought{% endif %}">
+                            <td class="fw-bold">{{ item.name }}</td>
+                            <td>
+                                {% if item.category == 'Food' %} <span class="badge bg-warning text-dark"><i
+                                        class="fas fa-utensils me-1"></i> Food</span>
+                                {% elif item.category == 'Drinks' %} <span class="badge bg-info text-dark"><i
+                                        class="fas fa-glass-water me-1"></i> Drinks</span>
+                                {% elif item.category == 'Hygiene' %} <span class="badge bg-success"><i
+                                        class="fas fa-soap me-1"></i> Hygiene</span>
+                                {% elif item.category == 'Electronics' %} <span class="badge bg-dark"><i
+                                        class="fas fa-plug me-1"></i> Electronics</span>
+                                {% elif item.category == 'Clothing' %} <span class="badge bg-primary"><i
+                                        class="fas fa-tshirt me-1"></i> Clothing</span>
+                                {% elif item.category == 'Furniture' %} <span class="badge bg-secondary"><i
+                                        class="fas fa-chair me-1"></i> Furniture</span>
+                                {% else %} <span class="badge bg-secondary"><i class="fas fa-box me-1"></i> {{
+                                    item.category }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">{{ item.qty }}</td>
+                            <td class="text-end text-muted">RM {{ "%.2f"|format(item.price) }}</td>
+                            <td class="text-end fw-bold">RM {{ "%.2f"|format(item.total) }}</td>
+                            <td class="text-end">
+                                <!-- Tick / Untick Button -->
+                                <!-- Tick / Untick Button -->
+                                <button onclick="toggleBought(event, {{ item.id }})"
+                                    class="btn btn-sm {% if item.is_bought %}btn-secondary{% else %}btn-success{% endif %} me-1"
+                                    title="{% if item.is_bought %}Mark as Unbought{% else %}Mark as Bought{% endif %}">
+                                    <i class="fas {% if item.is_bought %}fa-undo{% else %}fa-check{% endif %}"></i>
+                                </button>
+
+                                <button class="btn btn-sm btn-warning text-dark me-1" data-bs-toggle="modal"
+                                    data-bs-target="#editModal{{ item.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <a href="/delete/{{ item.id }}" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this item?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+
+                        <!-- Edit Modal -->
+                        <div class="modal fade" id="editModal{{ item.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title fw-bold">Edit Item</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="/edit_item" method="POST">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                                            <input type="hidden" name="list_id" value="{{ active_list.id }}">
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Item Name</label>
+                                                <input type="text" name="item_name" class="form-control"
+                                                    value="{{ item.name }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Category</label>
+                                                <select name="item_category" class="form-select">
+                                                    <option value="General" {% if item.category=='General' %}selected{%
+                                                        endif %}>📂 General</option>
+                                                    <option value="Food" {% if item.category=='Food' %}selected{% endif
+                                                        %}>🍔 Food</option>
+                                                    <option value="Drinks" {% if item.category=='Drinks' %}selected{%
+                                                        endif %}>🥤 Drinks</option>
+                                                    <option value="Hygiene" {% if item.category=='Hygiene' %}selected{%
+                                                        endif %}>🧼 Hygiene</option>
+                                                    <option value="Electronics" {% if item.category=='Electronics'
+                                                        %}selected{% endif %}>🔌 Electronics</option>
+                                                    <option value="Clothing" {% if item.category=='Clothing'
+                                                        %}selected{% endif %}>👕 Clothing</option>
+                                                    <option value="Furniture" {% if item.category=='Furniture'
+                                                        %}selected{% endif %}>🪑 Furniture</option>
+                                                    <option value="Others" {% if item.category=='Others' %}selected{%
+                                                        endif %}>📦 Others</option>
+                                                </select>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6 mb-3">
+                                                    <label class="form-label">Quantity</label>
+                                                    <input type="number" name="item_qty" class="form-control"
+                                                        value="{{ item.qty }}" min="1" required>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <label class="form-label">Price (RM)</label>
+                                                    <input type="number" step="0.01" name="item_price"
+                                                        class="form-control" value="{{ item.price }}" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-shopping-basket fa-3x mb-3 opacity-25"></i>
+                <p>
+                    {% if search_query %}
+                    No items found for "{{ search_query }}".
+                    {% else %}
+                    This list is empty. Add items above!
+                    {% endif %}
+                </p>
+                {% if search_query %}
+                <a href="/dashboard?list_id={{ active_list.id }}" class="btn btn-sm btn-outline-dark">Reset Search</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="modalCreateList" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Create New List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/create_list" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">List Name</label>
+                        <input type="text" name="list_name" class="form-control"
+                            placeholder="Ex: Grocery Run, PC Build..." required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Create List</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if active_list %}
+<div class="modal fade" id="renameModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Rename List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/rename_list" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="list_id" value="{{ active_list.id }}">
+                    <div class="mb-3">
+                        <label class="form-label">New List Name</label>
+                        <input type="text" name="new_name" class="form-control" value="{{ active_list.name }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const savingTips = [
+        "Tip: Prioritize 'Needs' over 'Wants'.",
+        "Tip: Compare prices at 2-3 stores before making a large purchase.",
+        "Tip: Bring your own lunch to save daily expenses.",
+        "Tip: Track every cent to know where your money goes.",
+        "Tip: Avoid debt for depreciating assets.",
+        "Tip: Buying in bulk is usually cheaper.",
+        "Tip: Use the 24-hour rule: Wait a day before buying expensive items.",
+        "Tip: Turn off unused electrical switches to save on bills."
+    ];
+
+    const randomTip = savingTips[Math.floor(Math.random() * savingTips.length)];
+    const tipElement = document.getElementById('sidebarTip');
+    if (tipElement) {
+        tipElement.innerHTML = randomTip;
+    }
+
+    async function toggleBought(event, itemId) {
+        event.preventDefault();
+        const btn = event.currentTarget;
+        const icon = btn.querySelector('i');
+        const row = btn.closest('tr');
+
+        try {
+            const response = await fetch(`/toggle_bought/${itemId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                if (data.new_status === 1) {
+                    // Bought
+                    row.classList.add('item-bought');
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-secondary');
+                    icon.classList.remove('fa-check');
+                    icon.classList.add('fa-undo');
+                    btn.title = "Mark as Unbought";
+                } else {
+                    // Unbought
+                    row.classList.remove('item-bought');
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-success');
+                    icon.classList.remove('fa-undo');
+                    icon.classList.add('fa-check');
+                    btn.title = "Mark as Bought";
+                }
+            } else {
+                alert('Failed to update status');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error connecting to server');
+        }
+    }
+
+    function liveSearch() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const tbody = document.querySelector('tbody');
+        const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+        // Calculate score and sort
+        rows.forEach(row => {
+            const itemName = row.cells[0].textContent.toLowerCase();
+            const category = row.cells[1].textContent.toLowerCase();
+            let score = 0;
+
+            if (filter === "") {
+                score = 0; // Keep original order (roughly) if empty, or just reset
+                row.style.display = "";
+            } else if (itemName.includes(filter) || category.includes(filter)) {
+                score = 1;
+                row.style.display = "";
+                row.style.backgroundColor = "#e8f0fe"; // Light highlight
+            } else {
+                score = -1;
+                row.style.display = ""; // Keep visible as requested ("tunjuk kan yang jugak")
+                row.style.backgroundColor = ""; // Reset background
+            }
+            row.dataset.score = score;
+        });
+
+        // Sort: High score first
+        rows.sort((a, b) => {
+            return b.dataset.score - a.dataset.score;
+        });
+
+        // Re-append to DOM
+        rows.forEach(row => tbody.appendChild(row));
+    }
+</script>
+{% endblock %}

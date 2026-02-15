@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+
+{% block title %}Login - SmartPlanner{% endblock %}
+
+{% block extra_css %}
+<style>
+    .main-content {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 450px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .login-header {
+        background: linear-gradient(135deg, #198754, #20c997);
+        color: white;
+        padding: 40px 30px;
+        text-align: center;
+    }
+
+    .btn-login {
+        background-color: #198754;
+        border: none;
+        padding: 12px;
+        font-size: 1.1rem;
+        transition: 0.3s;
+    }
+
+    .btn-login:hover {
+        background-color: #146c43;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card login-card">
+    <div class="login-header">
+        <h1><i class="fas fa-leaf me-2"></i>SmartPlanner</h1>
+        <p class="mb-0 opacity-75">Smart Budget Management System</p>
+    </div>
+
+    <div class="card-body p-5 bg-white">
+
+        {% if error %}
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <div>{{ error }}</div>
+        </div>
+        {% endif %}
+
+        <form action="/login" method="POST">
+            <div class="mb-4">
+                <label class="form-label text-muted fw-bold">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
+                    <input type="text" name="username" class="form-control border-start-0 ps-0"
+                        placeholder="Enter your ID" required>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted fw-bold">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                    <input type="password" name="password" class="form-control border-start-0 ps-0"
+                        placeholder="Enter password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-login w-100 text-white fw-bold rounded-pill mt-2">
+                LOGIN <i class="fas fa-sign-in-alt ms-2"></i>
+            </button>
+        </form>
+
+        <div class="text-center mt-4 border-top pt-3">
+            <p class="small text-muted">Don't have an account? <a href="/register"
+                    class="text-success fw-bold text-decoration-none">Register Now</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

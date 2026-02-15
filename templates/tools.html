@@ -1,0 +1,386 @@
+{% extends "layout.html" %}
+
+{% block title %}Tools - SmartPlanner{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* --- Card Styles (Extends style.css .card) --- */
+    /* style.css .card is already glassmorphic. We just need specific overrides if any */
+
+    .card-header {
+        background-color: rgba(255, 255, 255, 0.5);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px 15px 0 0 !important;
+        padding: 20px;
+    }
+
+    /* --- Calculator Styles --- */
+    .calc-screen {
+        background-color: #212529;
+        color: #fff;
+        font-size: 2rem;
+        text-align: right;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        font-family: 'Courier New', monospace;
+        height: 80px;
+        overflow: hidden;
+        word-wrap: break-word;
+    }
+
+    .btn-calc {
+        height: 50px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        font-weight: bold;
+        border: none;
+        transition: 0.2s;
+    }
+
+    .btn-calc:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-num {
+        background-color: #f8f9fa;
+        color: #333;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-op {
+        background-color: #e9ecef;
+        color: #198754;
+    }
+
+    .btn-sci {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        font-size: 0.9rem;
+    }
+
+    .btn-eq {
+        background-color: #198754;
+        color: white;
+    }
+
+    .btn-clear {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    /* --- Currency & Select2 Custom Styles --- */
+    .currency-result {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #198754;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    /* Custom Select2 supaya nampak macam Bootstrap */
+    .select2-container .select2-selection--single {
+        height: 45px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 8px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 42px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px;
+        font-size: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 text-center mb-4">
+        <h3 class="fw-bold text-dark">Calculator and Currency Converter</h3>
+        <p class="text-muted fst-italic" id="randomTip"><i class="fas fa-lightbulb text-warning me-2"></i>Loading tip...
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="fw-bold mb-0"><i class="fas fa-calculator me-2 text-success"></i>Smart Calculator</h5>
+            </div>
+            <div class="card-body bg-white rounded-bottom">
+                <div class="calc-screen" id="display">0</div>
+
+                <div class="row g-2">
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100"
+                            onclick="appendFunction('Math.sin(')">sin</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100"
+                            onclick="appendFunction('Math.cos(')">cos</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100"
+                            onclick="appendFunction('Math.tan(')">tan</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100"
+                            onclick="appendFunction('Math.PI')">π</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100"
+                            onclick="appendFunction('Math.log10(')">log</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100"
+                            onclick="appendFunction('Math.sqrt(')">√</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100"
+                            onclick="appendOperator('**')">^</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100" onclick="appendNumber('(')">(</button>
+                    </div>
+
+                    <div class="col-3"><button class="btn btn-calc btn-clear w-100" onclick="clearDisplay()">AC</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-sci w-100" onclick="appendNumber(')')">)</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-op w-100"
+                            onclick="appendOperator('%')">%</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-op w-100"
+                            onclick="appendOperator('/')">÷</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('7')">7</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('8')">8</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('9')">9</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-op w-100"
+                            onclick="appendOperator('*')">×</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('4')">4</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('5')">5</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('6')">6</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-op w-100"
+                            onclick="appendOperator('-')">-</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('1')">1</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('2')">2</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('3')">3</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-op w-100"
+                            onclick="appendOperator('+')">+</button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('0')">0</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-num w-100" onclick="appendNumber('.')">.</button>
+                    </div>
+                    <div class="col-3"><button class="btn btn-calc btn-op w-100" onclick="deleteChar()"><i
+                                class="fas fa-backspace"></i></button></div>
+                    <div class="col-3"><button class="btn btn-calc btn-eq w-100" onclick="calculate()">=</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="fw-bold mb-0"><i class="fas fa-coins me-2 text-warning"></i>World Currency Converter</h5>
+            </div>
+            <div class="card-body">
+
+                <div class="alert alert-info py-2 mb-4 d-flex align-items-center">
+                    <i class="fas fa-search me-2"></i>
+                    <small>Type country name for quick search.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted">Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 fw-bold">$</span>
+                        <input type="number" id="amount" class="form-control border-start-0" placeholder="0.00"
+                            value="1" oninput="convertCurrency()">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-muted">From Country</label>
+                        <select id="fromCurrency" class="form-select select2-enable" style="width: 100%"></select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-muted">To Country</label>
+                        <select id="toCurrency" class="form-select select2-enable" style="width: 100%"></select>
+                    </div>
+                </div>
+
+                <div class="text-center p-4 bg-light rounded-3 mt-4 border border-1">
+                    <small class="text-uppercase text-muted fw-bold">Estimated Result</small>
+                    <div class="currency-result" id="conversionResult">...</div>
+                    <small class="text-muted" id="rateInfo">Updating rates...</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    // --- 1. RANDOM TIPS ---
+    const tips = [
+        "Tip: Cryptocurrency is not supported here due to high volatility.",
+        "Tip: Check official bank rates before making large transactions.",
+        "Tip: Use local currency cash to avoid credit card charges abroad.",
+        "Tip: The 50/30/20 budget rule is a popular financial management technique.",
+        "Tip: Keep purchase receipts for audit or tax purposes."
+    ];
+    const tipElement = document.getElementById('randomTip');
+    if (tipElement) {
+        tipElement.innerHTML = '<i class="fas fa-lightbulb text-warning me-2"></i>' + tips[Math.floor(Math.random() * tips.length)];
+    }
+
+    // --- 2. CALCULATOR LOGIC ---
+    let display = document.getElementById('display');
+
+    function appendNumber(num) {
+        if (display.innerText === '0' && num !== '.') display.innerText = '';
+        display.innerText += num;
+    }
+    function appendOperator(op) { display.innerText += op; }
+    function appendFunction(func) {
+        if (display.innerText === '0') display.innerText = '';
+        display.innerText += func;
+    }
+    function clearDisplay() { display.innerText = '0'; }
+    function deleteChar() {
+        display.innerText = display.innerText.slice(0, -1);
+        if (display.innerText === '') display.innerText = '0';
+    }
+    function calculate() {
+        try {
+            let result = eval(display.innerText);
+            // Format hasil kalkulator juga jika perlu, tapi biasanya kalkulator raw is better.
+            display.innerText = (String(result).length > 10) ? result.toPrecision(8) : result;
+        } catch {
+            display.innerText = 'Error';
+            setTimeout(() => display.innerText = '0', 1000);
+        }
+    }
+
+    // --- 3. CURRENCY CONVERTER LOGIC ---
+    // List negara
+    const countryList = {
+        "AED": "United Arab Emirates (Dirham)", "AFN": "Afghanistan (Afghani)", "ALL": "Albania (Lek)", "AMD": "Armenia (Dram)", "ANG": "Netherlands Antilles (Guilder)",
+        "AOA": "Angola (Kwanza)", "ARS": "Argentina (Peso)", "AUD": "Australia (Dollar)", "AWG": "Aruba (Florin)", "AZN": "Azerbaijan (Manat)",
+        "BAM": "Bosnia-Herzegovina (Mark)", "BBD": "Barbados (Dollar)", "BDT": "Bangladesh (Taka)", "BGN": "Bulgaria (Lev)", "BHD": "Bahrain (Dinar)",
+        "BIF": "Burundi (Franc)", "BMD": "Bermuda (Dollar)", "BND": "Brunei (Dollar)", "BOB": "Bolivia (Boliviano)", "BRL": "Brazil (Real)",
+        "BSD": "Bahamas (Dollar)", "BTN": "Bhutan (Ngultrum)", "BWP": "Botswana (Pula)", "BYN": "Belarus (Ruble)", "BZD": "Belize (Dollar)",
+        "CAD": "Canada (Dollar)", "CDF": "Congo (Franc)", "CHF": "Switzerland (Franc)", "CLP": "Chile (Peso)", "CNY": "China (Yuan)",
+        "COP": "Colombia (Peso)", "CRC": "Costa Rica (Colon)", "CUP": "Cuba (Peso)", "CVE": "Cape Verde (Escudo)", "CZK": "Czech Republic (Koruna)",
+        "DJF": "Djibouti (Franc)", "DKK": "Denmark (Krone)", "DOP": "Dominican Republic (Peso)", "DZD": "Algeria (Dinar)", "EGP": "Egypt (Pound)",
+        "ERN": "Eritrea (Nakfa)", "ETB": "Ethiopia (Birr)", "EUR": "Eurozone (Euro)", "FJD": "Fiji (Dollar)", "FKP": "Falkland Islands (Pound)",
+        "GBP": "United Kingdom (Pound)", "GEL": "Georgia (Lari)", "GHS": "Ghana (Cedi)", "GIP": "Gibraltar (Pound)", "GMD": "Gambia (Dalasi)",
+        "GNF": "Guinea (Franc)", "GTQ": "Guatemala (Quetzal)", "GYD": "Guyana (Dollar)", "HKD": "Hong Kong (Dollar)", "HNL": "Honduras (Lempira)",
+        "HRK": "Croatia (Kuna)", "HTG": "Haiti (Gourde)", "HUF": "Hungary (Forint)", "IDR": "Indonesia (Rupiah)", "ILS": "Israel (Shekel)",
+        "INR": "India (Rupee)", "IQD": "Iraq (Dinar)", "IRR": "Iran (Rial)", "ISK": "Iceland (Krona)", "JMD": "Jamaica (Dollar)",
+        "JOD": "Jordan (Dinar)", "JPY": "Japan (Yen)", "KES": "Kenya (Shilling)", "KGS": "Kyrgyzstan (Som)", "KHR": "Cambodia (Riel)",
+        "KMF": "Comoros (Franc)", "KPW": "North Korea (Won)", "KRW": "South Korea (Won)", "KWD": "Kuwait (Dinar)", "KYD": "Cayman Islands (Dollar)",
+        "KZT": "Kazakhstan (Tenge)", "LAK": "Laos (Kip)", "LBP": "Lebanon (Pound)", "LKR": "Sri Lanka (Rupee)", "LRD": "Liberia (Dollar)",
+        "LSL": "Lesotho (Loti)", "LYD": "Libya (Dinar)", "MAD": "Morocco (Dirham)", "MDL": "Moldova (Leu)", "MGA": "Madagascar (Ariary)",
+        "MKD": "North Macedonia (Denar)", "MMK": "Myanmar (Kyat)", "MNT": "Mongolia (Tugrik)", "MOP": "Macau (Pataca)", "MRU": "Mauritania (Ouguiya)",
+        "MUR": "Mauritius (Rupee)", "MVR": "Maldives (Rufiyaa)", "MWK": "Malawi (Kwacha)", "MXN": "Mexico (Peso)", "MYR": "Malaysia (Ringgit)",
+        "MZN": "Mozambique (Metical)", "NAD": "Namibia (Dollar)", "NGN": "Nigeria (Naira)", "NIO": "Nicaragua (Cordoba)", "NOK": "Norway (Krone)",
+        "NPR": "Nepal (Rupee)", "NZD": "New Zealand (Dollar)", "OMR": "Oman (Rial)", "PAB": "Panama (Balboa)", "PEN": "Peru (Sol)",
+        "PGK": "Papua New Guinea (Kina)", "PHP": "Philippines (Peso)", "PKR": "Pakistan (Rupee)", "PLN": "Poland (Zloty)", "PYG": "Paraguay (Guarani)",
+        "QAR": "Qatar (Riyal)", "RON": "Romania (Leu)", "RSD": "Serbia (Dinar)", "RUB": "Russia (Ruble)", "RWF": "Rwanda (Franc)",
+        "SAR": "Saudi Arabia (Riyal)", "SBD": "Solomon Islands (Dollar)", "SCR": "Seychelles (Rupee)", "SDG": "Sudan (Pound)", "SEK": "Sweden (Krona)",
+        "SGD": "Singapore (Dollar)", "SHP": "Saint Helena (Pound)", "SLL": "Sierra Leone (Leone)", "SOS": "Somalia (Shilling)", "SRD": "Suriname (Dollar)",
+        "SSP": "South Sudan (Pound)", "STN": "Sao Tome (Dobra)", "SYP": "Syria (Pound)", "SZL": "Eswatini (Lilangeni)", "THB": "Thailand (Baht)",
+        "TJS": "Tajikistan (Somoni)", "TMT": "Turkmenistan (Manat)", "TND": "Tunisia (Dinar)", "TOP": "Tonga (Pa'anga)", "TRY": "Turkey (Lira)",
+        "TTD": "Trinidad & Tobago (Dollar)", "TWD": "Taiwan (Dollar)", "TZS": "Tanzania (Shilling)", "UAH": "Ukraine (Hryvnia)", "UGX": "Uganda (Shilling)",
+        "USD": "United States (Dollar)", "UYU": "Uruguay (Peso)", "UZS": "Uzbekistan (Som)", "VES": "Venezuela (Bolivar)", "VND": "Vietnam (Dong)",
+        "VUV": "Vanuatu (Vatu)", "WST": "Samoa (Tala)", "XAF": "Central African CFA (Franc)", "XCD": "East Caribbean (Dollar)", "XOF": "West African CFA (Franc)",
+        "XPF": "CFP Franc", "YER": "Yemen (Rial)", "ZAR": "South Africa (Rand)", "ZMW": "Zambia (Kwacha)", "ZWL": "Zimbabwe (Dollar)"
+    };
+
+    const fromSelect = document.getElementById('fromCurrency');
+    const toSelect = document.getElementById('toCurrency');
+
+    // Render Dropdown Options
+    if (fromSelect && toSelect) {
+        let sortedKeys = Object.keys(countryList).sort();
+        sortedKeys.forEach(code => {
+            let option1 = `<option value="${code}">${code} - ${countryList[code]}</option>`;
+            let option2 = `<option value="${code}">${code} - ${countryList[code]}</option>`;
+            fromSelect.innerHTML += option1;
+            toSelect.innerHTML += option2;
+        });
+
+        fromSelect.value = "MYR";
+        toSelect.value = "USD";
+    }
+
+    let cachedRates = {};
+
+    // --- INIT SELECT2 ---
+    $(document).ready(function () {
+        $('.select2-enable').select2();
+        $('.select2-enable').on('change', function () {
+            convertCurrency();
+        });
+    });
+
+    async function fetchRates(baseCurrency) {
+        try {
+            const res = await fetch(`https://open.er-api.com/v6/latest/${baseCurrency}`);
+            const data = await res.json();
+            cachedRates[baseCurrency] = data.rates;
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async function convertCurrency() {
+        const amount = document.getElementById('amount').value;
+        const from = $('#fromCurrency').val();
+        const to = $('#toCurrency').val();
+
+        const resultDisplay = document.getElementById('conversionResult');
+        const rateInfo = document.getElementById('rateInfo');
+
+        if (amount === '' || amount < 0) {
+            resultDisplay.innerText = "0.00";
+            return;
+        }
+
+        resultDisplay.style.opacity = "0.5";
+
+        if (!cachedRates[from]) {
+            await fetchRates(from);
+        }
+
+        if (cachedRates[from] && cachedRates[from][to]) {
+            const rate = cachedRates[from][to];
+            const total = amount * rate;
+
+            // === FORMAT NOMBOR DI SINI (Contoh: 200,000.00) ===
+            const formattedTotal = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            resultDisplay.innerText = `${to} ${formattedTotal}`;
+            rateInfo.innerText = `1 ${from} = ${rate.toFixed(4)} ${to}`;
+            resultDisplay.style.opacity = "1";
+        } else {
+            resultDisplay.innerText = "Error";
+            rateInfo.innerText = "Failed to connect to server.";
+        }
+    }
+
+    // Run on load
+    // convertCurrency(); // Might cause error before select2 init, safe to call but check element existence
+    if (document.getElementById('amount')) {
+        convertCurrency();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends "layout.html" %}
+
+{% block title %}AI Assistant - SmartPlanner{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- CHAT STYLES --- */
+    .card-header {
+        background-color: rgba(255, 255, 255, 0.5);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px 15px 0 0 !important;
+        padding: 20px;
+    }
+
+    .chat-box {
+        height: 450px;
+        overflow-y: auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 0 0 15px 15px;
+        /* Rounded bawah je sebab header dah rounded */
+    }
+
+    .message {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .message.user {
+        flex-direction: row-reverse;
+        /* User sebelah kanan */
+    }
+
+    .bubble {
+        padding: 12px 18px;
+        border-radius: 15px;
+        max-width: 75%;
+        font-size: 1rem;
+        line-height: 1.5;
+        position: relative;
+    }
+
+    /* Warna Bubble User (Hijau Tema) */
+    .message.user .bubble {
+        background: linear-gradient(135deg, #198754, #20c997);
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
+
+    /* Warna Bubble AI (Kelabu Cair) */
+    .message.ai .bubble {
+        background-color: #f1f3f5;
+        color: #333;
+        border-bottom-left-radius: 2px;
+    }
+
+    .avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 10px;
+        font-size: 0.9rem;
+    }
+
+    .avatar-ai {
+        background-color: #6f42c1;
+        color: white;
+    }
+
+    /* Ungu untuk AI */
+    .avatar-user {
+        background-color: #198754;
+        color: white;
+    }
+
+    .suggestion-btn {
+        text-align: left;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #555;
+        transition: 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .suggestion-btn:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="fas fa-robot me-2 text-primary"></i>AI Assistant</h5>
+                <span class="badge bg-success">Online</span>
+            </div>
+
+            <div class="chat-box" id="chatBox">
+                <div class="message ai">
+                    <div class="avatar avatar-ai"><i class="fas fa-robot"></i></div>
+                    <div class="bubble">
+                        Hi {{ username }}! I am your smart assistant. Can I help you calculate a budget or give you
+                        cooking ideas for today?
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light p-3 border-0 rounded-bottom" style="border-radius: 0 0 15px 15px;">
+                <div class="input-group">
+                    <input type="text" id="userInput" class="form-control" placeholder="Ask something..."
+                        onkeypress="handleEnter(event)">
+                    <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn">
+                        <i class="fas fa-paper-plane me-1"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mt-3 mt-lg-0">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold text-muted mb-3">QUESTION IDEAS (CLICK TO ASK)</h6>
+
+            <div class="d-grid gap-2">
+                <button class="btn suggestion-btn p-2 rounded" onclick="setQuestion('How to save money on groceries?')">
+                    💰 Tips to save on groceries?
+                </button>
+                <button class="btn suggestion-btn p-2 rounded"
+                    onclick="setQuestion('Give me a simple Ayam Masak Merah recipe.')">
+                    🍗 Ayam Masak Merah Recipe
+                </button>
+                <button class="btn suggestion-btn p-2 rounded"
+                    onclick="setQuestion('Calculate budget: Salary RM2000, Rent RM500.')">
+                    📊 Help calculate my budget
+                </button>
+                <button class="btn suggestion-btn p-2 rounded"
+                    onclick="setQuestion('What are must-buy items for university students?')">
+                    🎓 Student must-haves
+                </button>
+            </div>
+        </div>
+
+        <div class="alert alert-info border-0">
+            <small><i class="fas fa-info-circle me-1"></i> Ask me anything about your shopping list or budget
+                planning!</small>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function handleEnter(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    function setQuestion(text) {
+        document.getElementById('userInput').value = text;
+        sendMessage(); // Auto send bila klik
+    }
+
+    async function sendMessage() {
+        const inputField = document.getElementById('userInput');
+        const chatBox = document.getElementById('chatBox');
+        const question = inputField.value.trim();
+        const sendBtn = document.getElementById('sendBtn');
+
+        if (!question) return;
+
+        // 1. Paparkan Mesej User
+        chatBox.innerHTML += `
+            <div class="message user">
+                <div class="avatar avatar-user"><i class="fas fa-user"></i></div>
+                <div class="bubble">${question}</div>
+            </div>
+        `;
+
+        // Clear input & Scroll ke bawah
+        inputField.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 2. Tunjuk Loading Indicator
+        const loadingId = 'loading-' + Date.now();
+        chatBox.innerHTML += `
+            <div class="message ai" id="${loadingId}">
+                <div class="avatar avatar-ai"><i class="fas fa-robot"></i></div>
+                <div class="bubble text-muted">Typing... <i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        sendBtn.disabled = true;
+
+        try {
+            // 3. Hantar ke Python (Backend)
+            const response = await fetch('/ask_ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question })
+            });
+
+            const data = await response.json();
+
+            // 4. Padam Loading & Papar Jawapan AI
+            document.getElementById(loadingId).remove();
+
+            chatBox.innerHTML += `
+                <div class="message ai">
+                    <div class="avatar avatar-ai"><i class="fas fa-robot"></i></div>
+                    <div class="bubble">${formatText(data.answer)}</div>
+                </div>
+            `;
+
+        } catch (error) {
+            document.getElementById(loadingId).remove();
+            chatBox.innerHTML += `
+                <div class="message ai">
+                    <div class="avatar avatar-ai"><i class="fas fa-robot"></i></div>
+                    <div class="bubble text-danger">Sorry, connection error to AI server.</div>
+                </div>
+            `;
+        }
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+        sendBtn.disabled = false;
+    }
+
+    // Fungsi simple untuk tukar **text** jadi bold (macam markdown sikit)
+    function formatText(text) {
+        if (!text) return "";
+        // Tukar newline jadi <br>
+        let formatted = text.replace(/\n/g, '<br>');
+        // Tukar **bold** jadi <b>bold</b>
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        return formatted;
+    }
+</script>
+{% endblock %}
