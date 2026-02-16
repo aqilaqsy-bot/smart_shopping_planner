@@ -16,8 +16,6 @@
 }
 
 body {
-    /* Background Image: Supermarket Shelves (Product Logos & Items) */
-    /* Overlay dikurangkan ke 0.75 supaya gambar lebih jelas */
     background: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url('https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
     background-size: cover;
     background-attachment: fixed;
@@ -69,7 +67,7 @@ nav a:hover {
     padding: 0 20px;
 }
 
-/* Card Asal (Solid White) - Tanpa Gerak */
+/* Card Asal (Solid White) */
 .card {
     background: #ffffff;
     border: none;
@@ -77,10 +75,9 @@ nav a:hover {
     padding: 30px;
     margin-bottom: 25px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    /* Bayang nipis static */
 }
 
-/* Tajuk Seksyen - Tambah Shadow Putih Supaya Jelas */
+/* Tajuk Seksyen */
 h1,
 h2,
 h3,
@@ -124,13 +121,11 @@ input:focus {
     cursor: pointer;
     transition: 0.3s;
     width: 100%;
-    /* Static shadow button is fine, remove large movement */
     box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
 }
 
 .btn-primary:hover {
     background: var(--secondary);
-    /* Small movement for button is standard UX, but user asked for "biasa sahaja", let's keep it minimal */
     transform: translateY(-1px);
     box-shadow: 0 6px 15px rgba(63, 55, 201, 0.4);
 }
@@ -171,7 +166,7 @@ tr:last-child td {
 
 /* Bought Item Styling */
 .item-bought {
-    opacity: 0.5;
+    opacity: 0.6;
     background-color: #f8f9fa;
     text-decoration: line-through;
 }
@@ -180,9 +175,52 @@ tr:last-child td {
     color: #999;
 }
 
-.item-bought .btn-warning,
-.item-bought .btn-outline-danger {
-    opacity: 0.5;
-    pointer-events: none;
-    /* Disable edit/delete for bought items if desired, or keep enabled */
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+    .container {
+        max-width: 100% !important;
+        margin-top: 15px !important;
+        padding: 0 15px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .card {
+        padding: 15px !important;
+        margin-bottom: 15px !important;
+    }
+
+    .border-md-end {
+        border-right: none !important;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+}
+
+/* Mobile Item Card Style */
+.mobile-item-card {
+    border-radius: 12px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 5px solid var(--primary) !important;
+}
+
+.mobile-item-card:active {
+    transform: scale(0.98);
+}
+
+.mobile-item-card.item-bought {
+    border-left-color: #6c757d !important;
+}
+
+/* Offcanvas Customization */
+.offcanvas {
+    max-width: 80% !important;
+}
+
+.offcanvas-body .card {
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin-bottom: 1.5rem !important;
 }
