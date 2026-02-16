@@ -26,6 +26,16 @@ db_config = {
     'port': int(os.getenv('DB_PORT', 3306))
 }
 
+print("--- STARTUP DIAGNOSTICS ---")
+print(f"Connecting to DB: {db_config['host']}:{db_config['port']}")
+print(f"User: {db_config['user']}")
+print(f"Database: {db_config['database']}")
+if db_config['password']:
+    print("Password: [PROVIDED]")
+else:
+    print("Password: [MISSING/EMPTY]")
+print("---------------------------")
+
 # --- DATABASE CONNECTION FUNCTION ---
 def get_db_connection():
     conn = mysql.connector.connect(**db_config)
