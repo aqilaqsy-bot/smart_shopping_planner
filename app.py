@@ -9,22 +9,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'rahsia_besar_projek_ini_fyp_aqil')
+app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key_change_me')
 
-# --- CONFIG DATABASE ---
+# --- DATABASE CONFIG ---
 db_config = {
     'host': os.getenv('DB_HOST', 'localhost'),
     'user': os.getenv('DB_USER', 'root'),      
     'password': os.getenv('DB_PASSWORD', ''),      
-    'database': os.getenv('DB_NAME', 'shopping_list') 
+    'database': os.getenv('DB_NAME', 'shopping_list'),
+    'port': int(os.getenv('DB_PORT', 3306))
 }
 
-# --- FUNGSI SAMBUNG KE DATABASE ---
+# --- DATABASE CONNECTION FUNCTION ---
 def get_db_connection():
     conn = mysql.connector.connect(**db_config)
     return conn
 
-# --- SETUP TABLE (AUTO-RUN) ---
+# --- TABLE SETUP (AUTO-RUN) ---
 def init_db():
     conn = get_db_connection()
     c = conn.cursor()
@@ -79,13 +80,13 @@ def init_db():
 
 
 
-# Jalankan setup DB
+# Run DB setup
 try:
     init_db()
-    print("Database XAMPP berjaya disambung!")
+    print("MySQL Database successfully connected!")
 except Exception as e:
-    print(f"Error Database: {e}")
-    print("Pastikan XAMPP (MySQL) dah ON dan database 'shopping_list' dah create di phpMyAdmin.")
+    print(f"Database Error: {e}")
+    print("Ensure MySQL is ON and the 'shopping_list' database exists.")
 
 # --- AUTH ROUTES ---
 @app.route('/register', methods=['GET', 'POST'])
@@ -153,7 +154,7 @@ def dashboard():
     conn = get_db_connection()
     c = conn.cursor(dictionary=True)
 
-    # 1. Ambil List User (Hanya yang BELUM Archived)
+    # 1. Fetch User Lists (Only non-archived)
     c.execute("SELECT * FROM lists WHERE user_id=%s AND is_archived=0 ORDER BY created_at DESC", (user_id,))
     user_lists = c.fetchall()
 
@@ -164,7 +165,7 @@ def dashboard():
         c.execute("SELECT * FROM lists WHERE user_id=%s AND is_archived=0", (user_id,))
         user_lists = c.fetchall()
 
-    # 2. Tentukan List Aktif
+    # 2. Determine Active List
     active_list_id = request.args.get('list_id')
     active_list = None
     
@@ -179,7 +180,7 @@ def dashboard():
     budget = 0.0
 
     if active_list:
-        # Ambil budget dari list itu sendiri
+        # Get budget from the list
         budget = float(active_list['budget']) if active_list['budget'] else 0.0
 
         # 3. Ambil Items (Filter search by NAME or CATEGORY)
@@ -227,19 +228,19 @@ def history():
     conn = get_db_connection()
     c = conn.cursor(dictionary=True)
     
-    # Ambil list yang dah di-archive
+    # Fetch archived lists
     c.execute("SELECT * FROM lists WHERE user_id=%s AND is_archived=1 ORDER BY created_at DESC", (user_id,))
     archived_lists = c.fetchall()
     
-    # Kira total setiap list untuk display
+    # Calculate total for each list for display
     history_data = []
     for lst in archived_lists:
-        # 1. Kira Total
+        # 1. Calculate Total
         c.execute("SELECT SUM(price * quantity) as total FROM items WHERE list_id=%s", (lst['id'],))
         total_row = c.fetchone()
         total = total_row['total'] if total_row else 0.0
         
-        # 2. Ambil Barang-barang dalam list & Format
+        # 2. Fetch Items in List & Format
         c.execute("SELECT * FROM items WHERE list_id=%s", (lst['id'],))
         items_db = c.fetchall()
         
@@ -317,16 +318,16 @@ def create_list():
 def add_item():
     if 'user_id' not in session: return redirect(url_for('login'))
     list_id = request.form.get('list_id') 
-    nama = request.form.get('item_name')
+    name = request.form.get('item_name')
     qty = request.form.get('item_qty')
     price = request.form.get('item_price')
-    category = request.form.get('item_category', 'General') # Ambil kategori
+    category = request.form.get('item_category', 'General') # Get category
     
-    if nama and qty and price and list_id:
+    if name and qty and price and list_id:
         conn = get_db_connection()
         c = conn.cursor()
         c.execute("INSERT INTO items (list_id, name, price, quantity, category) VALUES (%s, %s, %s, %s, %s)", 
-                     (list_id, nama, float(price), int(qty), category))
+                     (list_id, name, float(price), int(qty), category))
         conn.commit()
         conn.close()
     return redirect(url_for('dashboard', list_id=list_id))
@@ -336,14 +337,14 @@ def edit_item():
     if 'user_id' not in session: return redirect(url_for('login'))
     item_id = request.form.get('item_id')
     list_id = request.form.get('list_id') 
-    nama = request.form.get('item_name')
+    name = request.form.get('item_name')
     qty = request.form.get('item_qty')
     price = request.form.get('item_price')
-    category = request.form.get('item_category') # Ambil kategori update
+    category = request.form.get('item_category') # Get category update
 
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute("UPDATE items SET name=%s, quantity=%s, price=%s, category=%s WHERE id=%s", (nama, int(qty), float(price), category, item_id))
+    c.execute("UPDATE items SET name=%s, quantity=%s, price=%s, category=%s WHERE id=%s", (name, int(qty), float(price), category, item_id))
     conn.commit()
     conn.close()
     return redirect(url_for('dashboard', list_id=list_id))
@@ -410,7 +411,7 @@ def rename_list():
 def update_budget():
     if 'user_id' not in session: return redirect(url_for('login'))
     amount = request.form.get('budget_amount')
-    list_id = request.form.get('list_id') # Kena pass list_id!
+    list_id = request.form.get('list_id')
 
     if list_id and amount:
         conn = get_db_connection()
@@ -442,22 +443,22 @@ def ask_ai():
         return jsonify({'answer': "Please login first."})
 
     data = request.json
-    soalan = data.get('question')
+    question = data.get('question')
     user_id = session['user_id']
 
     # ⚠️⚠️⚠️ API KEY FROM ENV ⚠️⚠️⚠️
     GROQ_API_KEY = os.getenv('GROQ_API_KEY') 
 
-    # 1. SEDUT DATA DARI DATABASE (MySQL Version)
+    # 1. FETCH DATA FROM DATABASE (MySQL Version)
     conn = get_db_connection()
     c = conn.cursor(dictionary=True)
     
-    # Ambil Bajet
+    # Get Budget
     c.execute("SELECT amount FROM budget WHERE user_id=%s", (user_id,))
     budget_row = c.fetchone()
     budget = float(budget_row['amount']) if budget_row else 0.0
     
-    # Ambil Semua Barang (Join dengan nama list)
+    # Fetch All Items (Join with list name)
     c.execute('''
         SELECT items.name, items.price, items.quantity, lists.name as list_name
         FROM items 
@@ -468,21 +469,21 @@ def ask_ai():
     conn.close()
 
     # 2. FORMAT DATA FOR AI
-    data_teks = f"User Information:\n- Total Budget: RM {budget:.2f}\n- Item List:\n"
+    data_text = f"User Information:\n- Total Budget: RM {budget:.2f}\n- Item List:\n"
     
-    total_belanja = 0
+    total_spent = 0
     if items:
         for item in items:
             total = float(item['price']) * int(item['quantity'])
-            total_belanja += total
-            data_teks += f"  * {item['name']} (RM {item['price']} x {item['quantity']}) in list '{item['list_name']}'\n"
+            total_spent += total
+            data_text += f"  * {item['name']} (RM {item['price']} x {item['quantity']}) in list '{item['list_name']}'\n"
     else:
-        data_teks += "  (No items yet)\n"
+        data_text += "  (No items yet)\n"
 
-    baki = budget - total_belanja
-    data_teks += f"\n- Total Spent: RM {total_belanja:.2f}\n- Remaining Balance: RM {baki:.2f}"
+    balance = budget - total_spent
+    data_text += f"\n- Total Spent: RM {total_spent:.2f}\n- Remaining Balance: RM {balance:.2f}"
 
-    # 3. HANTAR KE GROQ
+    # 3. SEND TO GROQ
     try:
         client = Groq(api_key=GROQ_API_KEY)
         
@@ -494,7 +495,7 @@ def ask_ai():
                     You are the SmartPlanner financial assistant. 
                     Answer user questions based on the following data:
                     
-                    {data_teks}
+                    {data_text}
                     
                     IMPORTANT:
                     - Answer in English.
@@ -503,14 +504,14 @@ def ask_ai():
                 },
                 {
                     "role": "user",
-                    "content": soalan,
+                    "content": question,
                 }
             ],
             model="llama-3.3-70b-versatile",
         )
 
-        jawapan = chat_completion.choices[0].message.content
-        return jsonify({'answer': jawapan})
+        answer = chat_completion.choices[0].message.content
+        return jsonify({'answer': answer})
 
     except Exception as e:
         print(f"Error AI: {e}")

@@ -1,1 +1,5 @@
 .env
+__pycache__/
+*.pyc
+shopping_list.db
+.DS_Store
