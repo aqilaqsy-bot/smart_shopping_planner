@@ -155,6 +155,19 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
+
+# --- DEBUG ROUTES ---
+@app.route('/debug_env')
+def debug_env():
+    # Return ONLY the keys of environment variables for security
+    keys = sorted(list(os.environ.keys()))
+    return jsonify({
+        'environment_keys': keys,
+        'has_db_host': 'DB_HOST' in os.environ,
+        'has_db_port': 'DB_PORT' in os.environ,
+        'current_time': datetime.datetime.now().isoformat()
+    })
+
 # --- DASHBOARD ROUTES ---
 @app.route('/')
 def home():
