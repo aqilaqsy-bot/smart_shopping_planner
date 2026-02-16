@@ -82,6 +82,34 @@
         <div class="alert alert-warning border-0 shadow-sm">No active list. Please create a new one.</div>
         {% endif %}
 
+        <!-- Mobile Quick Menu (Visible only on Mobile/Tablet) -->
+        <div class="row g-2 d-lg-none mb-3">
+            <div class="col-6">
+                <a href="/ai_assistant"
+                    class="btn btn-primary w-100 py-3 shadow-sm border-0 d-flex flex-column align-items-center justify-content-center"
+                    style="background: linear-gradient(45deg, #6b33b9, #2575fc); border-radius: 15px;">
+                    <i class="fas fa-robot mb-2 fs-4"></i>
+                    <span class="small fw-bold">AI Assistant</span>
+                </a>
+            </div>
+            <div class="col-6">
+                <a href="/history"
+                    class="btn btn-light w-100 py-3 shadow-sm border-0 d-flex flex-column align-items-center justify-content-center"
+                    style="border-radius: 15px; background: white;">
+                    <i class="fas fa-history mb-2 fs-4 text-secondary"></i>
+                    <span class="small fw-bold text-muted">History</span>
+                </a>
+            </div>
+            <div class="col-12">
+                <a href="/tools"
+                    class="btn btn-outline-dark w-100 py-2 shadow-sm d-flex align-items-center justify-content-center"
+                    style="border-radius: 12px; border-style: dashed;">
+                    <i class="fas fa-calculator me-2"></i>
+                    <span class="small fw-bold">Smart Tools</span>
+                </a>
+            </div>
+        </div>
+
         <!-- budget card -->
         <div class="card p-3 p-md-4 shadow-sm border-0">
             <div class="row align-items-center">
@@ -386,6 +414,15 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Floating Add Button for Mobile -->
+<div class="d-lg-none">
+    <button class="btn btn-success fab-mobile"
+        onclick="document.querySelector('input[name=\'item_name\']').focus(); window.scrollTo({top: document.querySelector('.card-success')?.offsetTop - 100, behavior: 'smooth'});">
+        <i class="fas fa-plus fs-3"></i>
+    </button>
+</div>
+
 {% endblock %}
 
 {% block scripts %}

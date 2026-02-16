@@ -185,6 +185,11 @@ tr:last-child td {
 }
 
 @media (max-width: 768px) {
+    body {
+        background-attachment: scroll !important;
+        /* Fixes jumping on mobile browsers */
+    }
+
     .card {
         padding: 15px !important;
         margin-bottom: 15px !important;
@@ -195,6 +200,11 @@ tr:last-child td {
         border-bottom: 1px solid #dee2e6;
         padding-bottom: 15px;
         margin-bottom: 15px;
+    }
+
+    .main-content {
+        min-height: auto !important;
+        padding-top: 1rem !important;
     }
 }
 

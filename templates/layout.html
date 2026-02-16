@@ -30,7 +30,7 @@
             <a class="navbar-brand fw-bold text-dark mx-auto mx-lg-0" href="/">
                 <i class="fas fa-leaf me-2 text-success"></i>
                 <span
-                    style="background: linear-gradient(to right, #6a11cb, #2575fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SmartPlanner</span>
+                    style="background: linear-gradient(to right, #6a11cb, #2575fc); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">SmartPlanner</span>
             </a>
 
             <div class="d-flex align-items-center">
@@ -56,16 +56,18 @@
     </div>
     {% endif %}
 
-    <div class="container main-content mt-4">
+    <div class="container main-content mt-4 d-flex flex-column">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show"
-            role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="flash-messages w-100 mb-3" style="max-width: 450px; margin: 0 auto;">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show mb-2"
+                role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-alert="dismiss" aria-label="Close"></button>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
         {% endif %}
         {% endwith %}
 
