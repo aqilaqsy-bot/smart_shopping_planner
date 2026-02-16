@@ -19,19 +19,41 @@
 
     {% if 'user_id' in session %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top"
-        style="background: rgba(255,255,255,0.9) !important;">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold text-dark" href="/">
+        style="background: rgba(255,255,255,0.9) !important; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div class="container-fluid px-3 px-md-4">
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler border-0 text-dark d-lg-none" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasSidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <a class="navbar-brand fw-bold text-dark mx-auto mx-lg-0" href="/">
                 <i class="fas fa-leaf me-2 text-success"></i>
                 <span
                     style="background: linear-gradient(to right, #6a11cb, #2575fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SmartPlanner</span>
             </a>
+
             <div class="d-flex align-items-center">
                 <span class="me-3 fw-bold text-dark d-none d-md-block">{{ username }}</span>
                 <a href="/logout" class="btn btn-sm btn-outline-danger rounded-pill px-3">Logout</a>
             </div>
         </div>
     </nav>
+
+    <!-- Mobile Offcanvas Sidebar -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
+        <div class="offcanvas-header bg-light">
+            <h5 class="offcanvas-title fw-bold" id="offcanvasSidebarLabel">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body h-100 d-flex flex-column">
+            <!-- Content will be injected here via index.html or common parts -->
+            <div id="mobileSidebarContent"></div>
+            <div class="mt-auto p-3 border-top text-center text-muted small">
+                Logged in as <b>{{ username }}</b>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     <div class="container main-content mt-4">
