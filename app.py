@@ -11,12 +11,6 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key_change_me')
 
-# --- DEBUG ERROR HANDLER ---
-@app.errorhandler(500)
-def internal_error(error):
-    import traceback
-    return f"<pre>{traceback.format_exc()}</pre>", 500
-
 # --- DATABASE CONFIG ---
 # This checks both manual (DB_) and Railway auto-provided (MYSQL) variable names
 db_config = {
@@ -30,16 +24,6 @@ db_config = {
 # Smart Port Logic: If host is internal, force port 3306 (internal port)
 if db_config['host'] == 'mysql.railway.internal':
     db_config['port'] = 3306
-
-print("--- STARTUP DIAGNOSTICS ---")
-print(f"Connecting to DB: {db_config['host']}:{db_config['port']}")
-print(f"User: {db_config['user']}")
-print(f"Database: {db_config['database']}")
-if db_config['password']:
-    print("Password: [PROVIDED]")
-else:
-    print("Password: [MISSING/EMPTY]")
-print("---------------------------")
 
 # --- DATABASE CONNECTION FUNCTION ---
 def get_db_connection():
@@ -160,18 +144,6 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
-
-# --- DEBUG ROUTES ---
-@app.route('/debug_env')
-def debug_env():
-    # Return ONLY the keys of environment variables for security
-    keys = sorted(list(os.environ.keys()))
-    return jsonify({
-        'environment_keys': keys,
-        'has_db_host': 'DB_HOST' in os.environ,
-        'has_db_port': 'DB_PORT' in os.environ,
-        'current_time': datetime.datetime.now().isoformat()
-    })
 
 # --- DASHBOARD ROUTES ---
 @app.route('/')
