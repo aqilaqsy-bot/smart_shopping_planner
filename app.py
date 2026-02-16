@@ -27,6 +27,10 @@ db_config = {
     'port': int(os.getenv('DB_PORT') or os.getenv('MYSQLPORT', 3306))
 }
 
+# Smart Port Logic: If host is internal, force port 3306 (internal port)
+if db_config['host'] == 'mysql.railway.internal':
+    db_config['port'] = 3306
+
 print("--- STARTUP DIAGNOSTICS ---")
 print(f"Connecting to DB: {db_config['host']}:{db_config['port']}")
 print(f"User: {db_config['user']}")
