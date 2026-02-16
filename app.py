@@ -11,6 +11,12 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key_change_me')
 
+# --- DEBUG ERROR HANDLER ---
+@app.errorhandler(500)
+def internal_error(error):
+    import traceback
+    return f"<pre>{traceback.format_exc()}</pre>", 500
+
 # --- DATABASE CONFIG ---
 # This checks both manual (DB_) and Railway auto-provided (MYSQL) variable names
 db_config = {
