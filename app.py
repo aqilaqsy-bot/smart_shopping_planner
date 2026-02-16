@@ -11,6 +11,12 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key_change_me')
 
+# --- DEBUG ERROR HANDLER ---
+@app.errorhandler(500)
+def internal_error(error):
+    import traceback
+    return f"<pre>{traceback.format_exc()}</pre>", 500
+
 # --- DATABASE CONFIG ---
 db_config = {
     'host': os.getenv('DB_HOST', 'localhost'),
@@ -453,10 +459,10 @@ def ask_ai():
     conn = get_db_connection()
     c = conn.cursor(dictionary=True)
     
-    # Get Budget
-    c.execute("SELECT amount FROM budget WHERE user_id=%s", (user_id,))
+    # Get total budget from all lists
+    c.execute("SELECT SUM(budget) as total_budget FROM lists WHERE user_id=%s", (user_id,))
     budget_row = c.fetchone()
-    budget = float(budget_row['amount']) if budget_row else 0.0
+    budget = float(budget_row['total_budget']) if budget_row and budget_row['total_budget'] else 0.0
     
     # Fetch All Items (Join with list name)
     c.execute('''
